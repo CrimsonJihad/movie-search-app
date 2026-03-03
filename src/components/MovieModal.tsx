@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { Movie } from '../types/tmdb';
 import { fetchMovieDetails } from '../api/tmdb';
-import { X, Film, Globe, Users, DollarSign, Activity, Star } from 'lucide-react';
+import { X, Film, Globe, Users, DollarSign, Activity, Star, MessageCircle } from 'lucide-react';
 import './MovieModal.css';
 
 interface MovieModalProps {
@@ -193,9 +193,12 @@ export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose, onPerson
                             )}
                             {detailedMovie.spoken_languages && detailedMovie.spoken_languages.length > 0 && (
                                 <div className="detail-box full-width">
-                                    <div className="detail-label">Languages</div>
-                                    <div className="detail-value">
-                                        {detailedMovie.spoken_languages.map(l => l.english_name).join(', ')}
+                                    <MessageCircle size={18} className="detail-icon" />
+                                    <div>
+                                        <div className="detail-label">Languages</div>
+                                        <div className="detail-value">
+                                            {detailedMovie.spoken_languages.map(l => l.english_name).join(', ')}
+                                        </div>
                                     </div>
                                 </div>
                             )}
