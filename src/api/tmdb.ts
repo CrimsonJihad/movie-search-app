@@ -57,7 +57,7 @@ export const fetchMovies = async (params: FetchMoviesParams): Promise<PaginatedR
 };
 
 export const fetchMovieDetails = async (movieId: number): Promise<Movie> => {
-    const response = await fetch(`${BASE_URL}/movie/${movieId}?language=en-US`, {
+    const response = await fetch(`${BASE_URL}/movie/${movieId}?language=en-US&append_to_response=credits`, {
         headers: getHeaders(),
     });
 
