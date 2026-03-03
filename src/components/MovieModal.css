@@ -386,6 +386,18 @@
     word-break: break-word;
 }
 
+.clickable-text {
+    display: inline-block;
+    cursor: pointer;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.clickable-text:hover {
+    color: var(--accent-light);
+    text-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
+    text-decoration: underline;
+}
+
 .loading-pulse {
     animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     color: var(--text-secondary);

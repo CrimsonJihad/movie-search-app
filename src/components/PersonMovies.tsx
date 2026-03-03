@@ -3,16 +3,17 @@ import type { Movie } from '../types/tmdb';
 import { fetchMovies } from '../api/tmdb';
 import { MovieGrid } from './MovieGrid';
 import { ArrowLeft } from 'lucide-react';
-import './ActorMovies.css';
+import './PersonMovies.css';
 
-interface ActorMoviesProps {
-    actorId: number;
-    actorName: string;
+interface PersonMoviesProps {
+    personId: number;
+    personName: string;
+    role: 'actor' | 'director';
     onBack: () => void;
     onMovieClick: (movie: Movie) => void;
 }
 
-export const ActorMovies: React.FC<ActorMoviesProps> = ({ actorId, actorName, onBack, onMovieClick }) => {
+export const PersonMovies: React.FC<PersonMoviesProps> = ({ personId, personName, role, onBack, onMovieClick }) => {
     const [movies, setMovies] = useState<Movie[]>([]);
     const [page, setPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ export const ActorMovies: React.FC<ActorMoviesProps> = ({ actorId, actorName, on
 
             const response = await fetchMovies({
                 page: currentPage,
-                with_cast: actorId.toString()
+                ...(role === 'actor' ? { with_cast: personId.toString() } : { with_crew: personId.toString() })
             });
 
             if (fetchId !== currentFetchId.current) return;
@@ -54,14 +55,14 @@ export const ActorMovies: React.FC<ActorMoviesProps> = ({ actorId, actorName, on
                 setIsLoading(false);
             }
         }
-    }, [page, actorId]);
+    }, [page, personId, role]);
 
     useEffect(() => {
         setMovies([]);
         currentFetchId.current++;
         loadMovies(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [actorId]);
+    }, [personId, role]);
 
     const handleScroll = useCallback(() => {
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
@@ -85,8 +86,8 @@ export const ActorMovies: React.FC<ActorMoviesProps> = ({ actorId, actorName, on
                         <span>Back to Search</span>
                     </button>
                 </div>
-                <h1>Movies with {actorName}</h1>
-                <p>Discover the filmography of {actorName}</p>
+                <h1>Movies {role === 'director' ? 'directed by' : 'with'} {personName}</h1>
+                <p>Discover the filmography of {personName}</p>
             </header>
 
             <main>

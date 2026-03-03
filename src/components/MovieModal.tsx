@@ -7,13 +7,13 @@ import './MovieModal.css';
 interface MovieModalProps {
     movie: Movie;
     onClose: () => void;
-    onActorClick?: (actorId: number, actorName: string) => void;
+    onPersonClick?: (personId: number, personName: string, role: 'actor' | 'director') => void;
 }
 
 const POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const PROFILE_BASE_URL = 'https://image.tmdb.org/t/p/w185';
 
-export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose, onActorClick }) => {
+export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose, onPersonClick }) => {
     const [detailedMovie, setDetailedMovie] = useState<Movie>(movie);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
@@ -52,8 +52,10 @@ export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose, onActorC
 
     const getDirector = () => {
         if (!detailedMovie.credits?.crew) return null;
-        return detailedMovie.credits.crew.find(c => c.job === 'Director')?.name;
+        return detailedMovie.credits.crew.find(c => c.job === 'Director');
     };
+
+    const director = getDirector();
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -126,10 +128,10 @@ export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose, onActorC
                                     {detailedMovie.credits.cast.slice(0, 8).map(actor => (
                                         <div
                                             key={actor.id}
-                                            className={`cast-card ${onActorClick ? 'clickable' : ''}`}
-                                            onClick={() => onActorClick?.(actor.id, actor.name)}
-                                            role={onActorClick ? "button" : undefined}
-                                            tabIndex={onActorClick ? 0 : undefined}
+                                            className={`cast-card ${onPersonClick ? 'clickable' : ''}`}
+                                            onClick={() => onPersonClick?.(actor.id, actor.name, 'actor')}
+                                            role={onPersonClick ? "button" : undefined}
+                                            tabIndex={onPersonClick ? 0 : undefined}
                                         >
                                             {actor.profile_path ? (
                                                 <img src={`${PROFILE_BASE_URL}${actor.profile_path}`} alt={actor.name} className="cast-image" />
@@ -162,12 +164,19 @@ export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose, onActorC
                                     <div className="detail-value">{formatCurrency(detailedMovie.revenue)}</div>
                                 </div>
                             </div>
-                            {getDirector() && (
+                            {director && (
                                 <div className="detail-box full-width">
                                     <Users size={18} className="detail-icon" />
                                     <div>
                                         <div className="detail-label">Director</div>
-                                        <div className="detail-value">{getDirector()}</div>
+                                        <div
+                                            className={`detail-value ${onPersonClick ? 'clickable-text' : ''}`}
+                                            onClick={() => onPersonClick?.(director.id, director.name, 'director')}
+                                            role={onPersonClick ? "button" : undefined}
+                                            tabIndex={onPersonClick ? 0 : undefined}
+                                        >
+                                            {director.name}
+                                        </div>
                                     </div>
                                 </div>
                             )}

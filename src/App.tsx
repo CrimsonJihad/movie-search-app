@@ -3,14 +3,14 @@ import { useDebounce } from 'use-debounce';
 import { MovieGrid } from './components/MovieGrid';
 import { FilterPanel } from './components/FilterPanel';
 import { MovieModal } from './components/MovieModal';
-import { ActorMovies } from './components/ActorMovies';
+import { PersonMovies } from './components/PersonMovies';
 import { fetchGenres, fetchMovies } from './api/tmdb';
 import type { Genre, Movie } from './types/tmdb';
 import './App.css';
 
 type ViewState =
   | { type: 'search' }
-  | { type: 'actor'; actorId: number; actorName: string };
+  | { type: 'person'; personId: number; personName: string; role: 'actor' | 'director' };
 
 function App() {
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -126,9 +126,10 @@ function App() {
             )}
           </>
         ) : (
-          <ActorMovies
-            actorId={viewState.actorId}
-            actorName={viewState.actorName}
+          <PersonMovies
+            personId={viewState.personId}
+            personName={viewState.personName}
+            role={viewState.role}
             onBack={() => setViewState({ type: 'search' })}
             onMovieClick={setSelectedMovie}
           />
@@ -149,9 +150,9 @@ function App() {
         <MovieModal
           movie={selectedMovie}
           onClose={() => setSelectedMovie(null)}
-          onActorClick={(actorId, actorName) => {
+          onPersonClick={(personId, personName, role) => {
             setSelectedMovie(null);
-            setViewState({ type: 'actor', actorId, actorName });
+            setViewState({ type: 'person', personId, personName, role });
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         />
