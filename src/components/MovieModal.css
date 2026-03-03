@@ -290,6 +290,16 @@
     border-radius: var(--radius-md);
     overflow: hidden;
     border: 1px solid var(--border-color);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.cast-card.clickable {
+    cursor: pointer;
+}
+
+.cast-card.clickable:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-color);
 }
 
 .cast-image,

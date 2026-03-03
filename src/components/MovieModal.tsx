@@ -7,12 +7,13 @@ import './MovieModal.css';
 interface MovieModalProps {
     movie: Movie;
     onClose: () => void;
+    onActorClick?: (actorId: number, actorName: string) => void;
 }
 
 const POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const PROFILE_BASE_URL = 'https://image.tmdb.org/t/p/w185';
 
-export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose }) => {
+export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose, onActorClick }) => {
     const [detailedMovie, setDetailedMovie] = useState<Movie>(movie);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
@@ -123,7 +124,13 @@ export const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose }) => {
                                 <h3>Top Cast</h3>
                                 <div className="cast-list">
                                     {detailedMovie.credits.cast.slice(0, 8).map(actor => (
-                                        <div key={actor.id} className="cast-card">
+                                        <div
+                                            key={actor.id}
+                                            className={`cast-card ${onActorClick ? 'clickable' : ''}`}
+                                            onClick={() => onActorClick?.(actor.id, actor.name)}
+                                            role={onActorClick ? "button" : undefined}
+                                            tabIndex={onActorClick ? 0 : undefined}
+                                        >
                                             {actor.profile_path ? (
                                                 <img src={`${PROFILE_BASE_URL}${actor.profile_path}`} alt={actor.name} className="cast-image" />
                                             ) : (

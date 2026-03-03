@@ -27,6 +27,7 @@ export interface FetchMoviesParams {
     primary_release_date_gte?: string;
     primary_release_date_lte?: string;
     with_genres?: string; // Comma-separated genre IDs
+    with_cast?: string; // Comma-separated cast IDs
 }
 
 export const fetchMovies = async (params: FetchMoviesParams): Promise<PaginatedResponse<Movie>> => {
@@ -46,6 +47,9 @@ export const fetchMovies = async (params: FetchMoviesParams): Promise<PaginatedR
     }
     if (params.with_genres) {
         urlParams.append('with_genres', params.with_genres);
+    }
+    if (params.with_cast) {
+        urlParams.append('with_cast', params.with_cast);
     }
 
     const response = await fetch(`${BASE_URL}/discover/movie?${urlParams.toString()}`, {

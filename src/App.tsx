@@ -1,11 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from 'use-debounce';
 import { MovieGrid } from './components/MovieGrid';
 import { FilterPanel } from './components/FilterPanel';
 import { MovieModal } from './components/MovieModal';
+import { ActorMovies } from './components/ActorMovies';
 import { fetchGenres, fetchMovies } from './api/tmdb';
 import type { Genre, Movie } from './types/tmdb';
 import './App.css';
+
+type ViewState =
+  | { type: 'search' }
+  | { type: 'actor'; actorId: number; actorName: string };
 
 function App() {
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -20,6 +25,7 @@ function App() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [viewState, setViewState] = useState<ViewState>({ type: 'search' });
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   // Load genres on mount
@@ -29,8 +35,11 @@ function App() {
       .catch((err) => console.error('Failed to load genres:', err));
   }, []);
 
+  const currentFetchId = React.useRef(0);
+
   // Fetch movies when filters or page changes
   const loadMovies = useCallback(async (reset: boolean = false) => {
+    const fetchId = ++currentFetchId.current;
     try {
       setIsLoading(true);
       const currentPage = reset ? 1 : page;
@@ -42,23 +51,36 @@ function App() {
         with_genres: debouncedSelectedGenres.length > 0 ? debouncedSelectedGenres.join(',') : undefined,
       });
 
+      // Ignore if a newer request has been made
+      if (fetchId !== currentFetchId.current) return;
+
       if (reset) {
         setMovies(response.results);
       } else {
-        setMovies((prev) => [...prev, ...response.results]);
+        setMovies((prev) => {
+          // Prevent duplicate items if same page fetched twice
+          const newMovies = response.results.filter(
+            (rm) => !prev.some((pm) => pm.id === rm.id)
+          );
+          return [...prev, ...newMovies];
+        });
       }
 
-      setHasMore(response.page < response.total_pages && response.page < 15); // Max 15 rows roughly (assuming 20 per page, technically 300 movies max per user spec if referring to items, but let's cap pages simply)
+      setHasMore(response.page < response.total_pages && response.page < 15);
       if (reset) setPage(2);
       else setPage((p) => p + 1);
     } catch (err) {
       console.error('Failed to load movies:', err);
     } finally {
-      setIsLoading(false);
+      if (fetchId === currentFetchId.current) {
+        setIsLoading(false);
+      }
     }
   }, [page, debouncedYearRange, debouncedSelectedGenres]);
 
   useEffect(() => {
+    setMovies([]); // Clear UI immediately so old movies disappear and scroll rests
+    currentFetchId.current++; // Invalidate pending fetches
     loadMovies(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedYearRange, debouncedSelectedGenres]);
@@ -93,28 +115,46 @@ function App() {
       </header>
 
       <main>
-        <MovieGrid
-          movies={movies}
-          onMovieClick={setSelectedMovie}
-          isLoading={isLoading}
-        />
-        {isLoading && movies.length > 0 && (
-          <div className="loading-more">Loading more movies...</div>
+        {viewState.type === 'search' ? (
+          <>
+            <MovieGrid
+              movies={movies}
+              onMovieClick={setSelectedMovie}
+              isLoading={isLoading}
+            />
+            {isLoading && movies.length > 0 && (
+              <div className="loading-more">Loading more movies...</div>
+            )}
+          </>
+        ) : (
+          <ActorMovies
+            actorId={viewState.actorId}
+            actorName={viewState.actorName}
+            onBack={() => setViewState({ type: 'search' })}
+            onMovieClick={setSelectedMovie}
+          />
         )}
       </main>
 
-      <FilterPanel
-        genres={genres}
-        selectedGenres={selectedGenres}
-        onGenreToggle={handleGenreToggle}
-        yearRange={yearRange}
-        onYearRangeChange={setYearRange}
-      />
+      {viewState.type === 'search' && (
+        <FilterPanel
+          genres={genres}
+          selectedGenres={selectedGenres}
+          onGenreToggle={handleGenreToggle}
+          yearRange={yearRange}
+          onYearRangeChange={setYearRange}
+        />
+      )}
 
       {selectedMovie && (
         <MovieModal
           movie={selectedMovie}
           onClose={() => setSelectedMovie(null)}
+          onActorClick={(actorId, actorName) => {
+            setSelectedMovie(null);
+            setViewState({ type: 'actor', actorId, actorName });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
         />
       )}
     </div>
